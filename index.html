@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Store Visit Planner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --danger: #f72585;
+            --success: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            padding: 10px;
+            background-color: #f0f2f5;
+            color: var(--dark);
+            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        h1 {
+            text-align: center;
+            color: var(--secondary);
+            margin: 10px 0;
+            font-size: 1.4rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .summary-total {
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding-bottom: 60px; /* Space for footer */
+        }
+        
+        .footer {
+            background-color: white;
+            padding: 8px 10px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 auto;
+            max-width: 500px;
+        }
+        
+        button {
+            border: none;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+        }
+        
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .download-btn {
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        .download-btn:hover {
+            background-color: #3a7bd5;
+        }
+        
+        .clear-btn {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .clear-btn:hover {
+            background-color: #e5177e;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 10px;
+            width: 100%;
+        }
+        
+        .day-column {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .day-header {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--light);
+            color: var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .day-count {
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+        
+        .store-list {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 3px;
+        }
+        
+        .store-item {
+            margin-bottom: 6px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            background-color: var(--light);
+            display: flex;
+            align-items: center;
+            border-left: 2px solid transparent;
+        }
+        
+        .store-checkbox {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+            flex-shrink: 0;
+        }
+        
+        .store-info {
+            flex-grow: 1;
+            min-width: 0;
+        }
+        
+        .store-pdi {
+            font-size: 0.65rem;
+            color: var(--gray);
+            margin-bottom: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .store-name {
+            font-size: 0.8rem;
+            color: var(--dark);
+            display: flex;
+            justify-content: space-between;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .visit-count {
+            background-color: var(--success);
+            color: white;
+            border-radius: 3px;
+            padding: 1px 4px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            margin-left: 5px;
+            flex-shrink: 0;
+        }
+        
+        .visit-days {
+            font-size: 0.6rem;
+            color: var(--gray);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Scrollbar styling */
+        .store-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .store-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .store-list::-webkit-scrollbar-thumb {
+            background: #b8b8b8;
+            border-radius: 2px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            body {
+                padding: 8px;
+            }
+            
+            .footer {
+                padding: 6px 8px;
+            }
+            
+            button {
+                padding: 6px 8px;
+                font-size: 0.75rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .controls {
+                gap: 5px;
+            }
+            
+            button {
+                padding: 5px 8px;
+                border-radius: 15px;
+            }
+            
+            .store-item {
+                padding: 6px 8px;
+            }
+        }
+        
+        /* Animation for checked items */
+        .store-checkbox:checked ~ .store-info .store-name,
+        .store-checkbox:checked ~ .store-info .store-pdi,
+        .store-checkbox:checked ~ .store-info .visit-days {
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        .store-checkbox:checked ~ .store-item {
+            background-color: #e3f2fd;
+            border-left: 2px solid var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <h1>📋 Store Visit Planner</h1>
+        <div class="summary-total" id="totalVisits">Total Visits: 0</div>
+        
+        <div class="container" id="daysContainer">
+            <!-- Days will be added here by JavaScript -->
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div class="controls">
+            <button id="downloadBtn" class="download-btn">📥 Download</button>
+            <button id="clearBtn" class="clear-btn">🗑️ Clear</button>
+        </div>
+    </div>
+
+    <script>
+        // Store data with PDI numbers
+        const storeData = [
+            {pdi: "11491", name: "SURYA MEDICALS", active: true},
+            {pdi: "11997", name: "KRISHNA MEDICAL", active: true},
+            {pdi: "8148", name: "KHARGESWAR PHARMACY", active: false},
+            {pdi: "8418", name: "M/S LALITA MEDICAL", active: true},
+            {pdi: "8431", name: "MAA SANTOSHI MEDICAL STORES", active: true},
+            {pdi: "8482", name: "M/S MAMATA MEDICAL STORES", active: true},
+            {pdi: "8760", name: "SUDHA MEDICALS", active: true},
+            {pdi: "90820", name: "AKRIT MEDICAL", active: true},
+            {pdi: "188275", name: "LIFECARE PHARMACY", active: true},
+            {pdi: "32764", name: "HEALTH CARE", active: true},
+            {pdi: "205590", name: "PRAVAAT MEDICURE", active: true},
+            {pdi: "13710", name: "M/S NEW VIVEKANANDA MEDICAL", active: true},
+            {pdi: "13842", name: "ACHARYA PHARMACY", active: true},
+            {pdi: "14083", name: "NEW FAIR MEDICINE SHOP", active: true},
+            {pdi: "12077", name: "MAA PHARMACY", active: true},
+            {pdi: "14053", name: "JAGRITI MEDICAL STORE", active: true},
+            {pdi: "29175", name: "DAS MEDICAL", active: true},
+            {pdi: "30544", name: "M/S SANJIVANI", active: true},
+            {pdi: "8383", name: "SUDHA MEDICAL STORE", active: true},
+            {pdi: "8492", name: "GOUR HARI PHARMACY", active: true},
+            {pdi: "9898", name: "JOSADA MEDICAL AND SURGICAL", active: true},
+            {pdi: "32609", name: "HUSSEN MEDICAL", active: true},
+            {pdi: "205579", name: "M/S MANNA PHARMACY", active: true},
+            {pdi: "37332", name: "PIRBABA TREATMENT CENTRE", active: true},
+            {pdi: "10234", name: "MAA SITALA MEDICAL", active: true},
+            {pdi: "14101", name: "MAA CHANDI PHARMACY", active: true},
+            {pdi: "14204", name: "PURNIMA MEDICAL STORE", active: false},
+            {pdi: "29641", name: "MAA MEDICAL STORES", active: true},
+            {pdi: "32504", name: "RUMPA MEDICAL", active: true},
+            {pdi: "8135", name: "MAA LAKHSMI PHARMACY", active: true},
+            {pdi: "8156", name: "M/S FRIENDS MEDICAL", active: false},
+            {pdi: "8276", name: "TULIP MEDICAL SHOP", active: true},
+            {pdi: "8495", name: "ALPHA MEDICALS", active: true},
+            {pdi: "32597", name: "HEALTH MEDICAL", active: true},
+            {pdi: "13769", name: "M/S NASIB MEDICAL STORES", active: true},
+            {pdi: "14080", name: "M/S GIRI MEDICAL STORES", active: false},
+            {pdi: "14099", name: "SIKHA PHARMACY", active: true},
+            {pdi: "14183", name: "M/S MA KALI MEDICAL STORES", active: false},
+            {pdi: "28973", name: "USHA MEDICAL AND SURGICAL", active: true},
+            {pdi: "10004", name: "SHREE MAA MEDICALS", active: true},
+            {pdi: "10251", name: "SUDHA MEDICAL", active: true},
+            {pdi: "12298", name: "M.M. MEDICO", active: false},
+            {pdi: "12646", name: "M/S SAINATH PHARMACY", active: true},
+            {pdi: "14011", name: "PRAVEEN MEDICALS", active: true},
+            {pdi: "14129", name: "M/S USHA MEDICAL", active: false},
+            {pdi: "29709", name: "DOCTORS MEDICAL", active: true},
+            {pdi: "8174", name: "SUPRAVA MEDICINE", active: true},
+            {pdi: "8178", name: "HUSSEN MEDICAL", active: false},
+            {pdi: "8210", name: "DR. ETHIX'S MEDZONE", active: false},
+            {pdi: "8345", name: "ASHA PHARMACY", active: false},
+            {pdi: "36984", name: "RENUKA MEDICAL STORE", active: true},
+            {pdi: "8485", name: "M/S DEY MEDICAL", active: true},
+            {pdi: "73004", name: "RIGHT MEDICINE", active: true},
+            {pdi: "206069", name: "M/S DANDAPAT MEDICAL STORES", active: true},
+            {pdi: "82477", name: "UJJANI MEDICAL STORE", active: true},
+            {pdi: "10282", name: "VIVEKANANDA MEDICAL STORE", active: false},
+            {pdi: "14180", name: "SEN ENTERPRISE", active: false},
+            {pdi: "8136", name: "TULSHI MEDICAL", active: true},
+            {pdi: "8274", name: "RENUKA MEDICAL STORE", active: true},
+            {pdi: "8384", name: "GIRI MEDICAL", active: false},
+            {pdi: "8490", name: "CITY MEDICAL", active: true},
+            {pdi: "162873", name: "MAA EVA PHARMACY", active: true},
+            {pdi: "32054", name: "BHARAT MEDICAL HALL", active: true},
+            {pdi: "8209", name: "NEW LIFE DRUG HOUSE", active: true},
+            {pdi: "8294", name: "KEDARNATH MEDICAL STORES", active: true},
+            {pdi: "8587", name: "LIFEGUARD MEDICAL STORE", active: true},
+            {pdi: "187180", name: "TALBAGICHA MEDICAL STORE", active: true},
+            {pdi: "205958", name: "MEDICINE MART", active: true},
+            {pdi: "185647", name: "M/S RAJ ENTERPRISE", active: true},
+            {pdi: "82146", name: "M/R RELIFE MEDICAL CENTRE", active: true},
+            {pdi: "10250", name: "NEW FRIENDS MEDICALS", active: true},
+            {pdi: "12008", name: "MAITY MEDICINE", active: true},
+            {pdi: "13274", name: "AGM MEDICOS", active: false},
+            {pdi: "14122", name: "M/S JOY MEDICAL STORE", active: true},
+            {pdi: "29313", name: "M/S SHYAMSUNDAR PHARMACY", active: true},
+            {pdi: "30647", name: "CHARUBALA MEDICAL", active: true},
+            {pdi: "31139", name: "Dr. Ethix's Medzone", active: false},
+            {pdi: "9234", name: "FORYOU MEDICINE SHOP", active: true},
+            {pdi: "188272", name: "ACHARYYA HEALTH CARE", active: true},
+            {pdi: "29215", name: "SASMAL MEDICAL STORES", active: true},
+            {pdi: "31317", name: "M/S New Lakshmipriya Medical Hall", active: false},
+            {pdi: "8134", name: "MEDICINE WORLD", active: false},
+            {pdi: "8222", name: "ARPAN MEDICAL STORE", active: true},
+            {pdi: "8279", name: "CHAULYA MEDICAL STORES", active: true},
+            {pdi: "8346", name: "BINDAS MEDICAL", active: true},
+            {pdi: "8484", name: "M/S. USHA MEDICAL", active: true},
+            {pdi: "205961", name: "BINDAS MEDICAL STORE", active: false},
+            {pdi: "13987", name: "M/S PALSONS ENTERPRISE", active: true},
+            {pdi: "14030", name: "PATNA MAA MEDICAL", active: false},
+            {pdi: "14048", name: "SKYLINE MEDICAL STORE", active: true},
+            {pdi: "29212", name: "M/S OMKER MEDICAL", active: false},
+            {pdi: "30614", name: "BABA LOKNATH MEDICAL STORES", active: true},
+            {pdi: "31819", name: "BHAVAPRITA MEDICAL", active: true},
+            {pdi: "37094", name: "BAJRANG PHARMACY", active: true},
+            {pdi: "6934", name: "LIFE PHARMACY", active: false},
+            {pdi: "8181", name: "ASHIRBAD MEDICAL", active: true},
+            {pdi: "8228", name: "CHATTERJEE MEDICAL", active: true},
+            {pdi: "8347", name: "BALARAM PHARMACY", active: true},
+            {pdi: "9741", name: "MEDIZONE", active: true},
+            {pdi: "9764", name: "SUJATA MEDICAL", active: true},
+            {pdi: "82143", name: "BID MEDICAL STORE", active: true},
+            {pdi: "32754", name: "DIBYA DRUG HOUSE", active: true},
+            {pdi: "8380", name: "JIBANDEEP MEDICAL", active: true},
+            {pdi: "205582", name: "ANJALI MEDICAL", active: true}
+        ];
+
+        // Days of the week
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayAbbreviations = {
+            'Monday': 'M',
+            'Tuesday': 'T',
+            'Wednesday': 'W',
+            'Thursday': 'TH',
+            'Friday': 'F',
+            'Saturday': 'S'
+        };
+        
+        // Track selected stores
+        let selectedStores = new Map();
+        
+        // Initialize the UI
+        function initUI() {
+            const container = document.getElementById('daysContainer');
+            container.innerHTML = '';
+            
+            // Create a column for each day
+            days.forEach(day => {
+                const dayColumn = document.createElement('div');
+                dayColumn.className = 'day-column';
+                
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'day-header';
+                
+                const dayTitle = document.createElement('span');
+                dayTitle.textContent = day;
+                
+                const dayCount = document.createElement('span');
+                dayCount.className = 'day-count';
+                dayCount.textContent = '0';
+                dayCount.id = `${day.toLowerCase()}-count`;
+                
+                dayHeader.appendChild(dayTitle);
+                dayHeader.appendChild(dayCount);
+                dayColumn.appendChild(dayHeader);
+                
+                const storeList = document.createElement('div');
+                storeList.className = 'store-list';
+                
+                // Add stores to the day column
+                storeData.forEach(store => {
+                    if (store.active) {
+                        const storeItem = document.createElement('div');
+                        storeItem.className = 'store-item';
+                        
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.className = 'store-checkbox';
+                        checkbox.id = `${day}-${store.pdi}-${store.name.replace(/\s+/g, '-')}`;
+                        checkbox.dataset.day = day;
+                        checkbox.dataset.store = store.name;
+                        checkbox.dataset.pdi = store.pdi;
+                        
+                        const storeInfo = document.createElement('div');
+                        storeInfo.className = 'store-info';
+                        
+                        const pdiSpan = document.createElement('div');
+                        pdiSpan.className = 'store-pdi';
+                        pdiSpan.textContent = `PDI: ${store.pdi}`;
+                        
+                        const nameContainer = document.createElement('div');
+                        nameContainer.className = 'store-name-container';
+                        
+                        const nameLabel = document.createElement('label');
+                        nameLabel.className = 'store-name';
+                        nameLabel.htmlFor = checkbox.id;
+                        nameLabel.textContent = store.name;
+                        
+                        const visitCount = document.createElement('span');
+                        visitCount.className = 'visit-count';
+                        visitCount.id = `count-${store.pdi}`;
+                        visitCount.textContent = '0';
+                        
+                        const visitDays = document.createElement('div');
+                        visitDays.className = 'visit-days';
+                        visitDays.id = `days-${store.pdi}`;
+                        visitDays.textContent = 'Days: ';
+                        
+                        nameLabel.appendChild(visitCount);
+                        storeInfo.appendChild(pdiSpan);
+                        storeInfo.appendChild(nameLabel);
+                        storeInfo.appendChild(visitDays);
+                        storeItem.appendChild(checkbox);
+                        storeItem.appendChild(storeInfo);
+                        storeList.appendChild(storeItem);
+                    }
+                });
+                
+                dayColumn.appendChild(storeList);
+                container.appendChild(dayColumn);
+            });
+        }
+        
+        // Update all counts
+        function updateCounts() {
+            // Reset all counts
+            document.querySelectorAll('.visit-count').forEach(el => {
+                el.textContent = '0';
+            });
+            
+            document.querySelectorAll('.day-count').forEach(el => {
+                el.textContent = '0';
+            });
+            
+            document.querySelectorAll('.visit-days').forEach(el => {
+                el.textContent = 'Days: ';
+            });
+            
+            selectedStores = new Map();
+            
+            // Get all selected checkboxes
+            const checkboxes = document.querySelectorAll('.store-checkbox:checked');
+            
+            // Update day counts
+            const dayCounts = {};
+            days.forEach(day => {
+                dayCounts[day] = 0;
+            });
+            
+            // Track which days each store is selected for
+            const storeDays = {};
+            
+            checkboxes.forEach(checkbox => {
+                const day = checkbox.dataset.day;
+                const pdi = checkbox.dataset.pdi;
+                const name = checkbox.dataset.store;
+                
+                // Update day count
+                dayCounts[day]++;
+                
+                // Update store visit count and days
+                if (!selectedStores.has(pdi)) {
+                    selectedStores.set(pdi, {
+                        name: name,
+                        count: 0,
+                        days: []
+                    });
+                }
+                selectedStores.get(pdi).count++;
+                selectedStores.get(pdi).days.push(dayAbbreviations[day]);
+                
+                // Initialize storeDays if needed
+                if (!storeDays[pdi]) {
+                    storeDays[pdi] = [];
+                }
+                storeDays[pdi].push(dayAbbreviations[day]);
+            });
+            
+            // Apply day counts
+            days.forEach(day => {
+                const dayCountEl = document.getElementById(`${day.toLowerCase()}-count`);
+                if (dayCountEl) {
+                    dayCountEl.textContent = dayCounts[day];
+                }
+            });
+            
+            // Apply store visit counts and days to ALL instances of each store
+            selectedStores.forEach((store, pdi) => {
+                const visitCountEls = document.querySelectorAll(`#count-${pdi}`);
+                const visitDaysEls = document.querySelectorAll(`#days-${pdi}`);
+                
+                visitCountEls.forEach(el => {
+                    el.textContent = store.count;
+                });
+                
+                visitDaysEls.forEach(el => {
+                    el.textContent = `Days: ${store.days.join(',')}`;
+                });
+            });
+            
+            // Update total visits
+            const totalVisits = checkboxes.length;
+            document.getElementById('totalVisits').textContent = `Total Visits: ${totalVisits}`;
+        }
+        
+        // Download CSV function
+        function downloadCSV() {
+            // Get all selected checkboxes
+            const checkboxes = document.querySelectorAll('.store-checkbox:checked');
+            const selections = {};
+            
+            // Initialize selections for each day
+            days.forEach(day => {
+                selections[day] = [];
+            });
+            
+            // Group selections by day
+            checkboxes.forEach(checkbox => {
+                const day = checkbox.dataset.day;
+                const store = {
+                    name: checkbox.dataset.store,
+                    pdi: checkbox.dataset.pdi
+                };
+                selections[day].push(store);
+            });
+            
+            // Create CSV content
+            let csvContent = "PDI,Retailer Name,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Total Visit,Visit Days\n";
+            
+            // Find all unique stores that were selected
+            const allSelectedStores = new Map();
+            days.forEach(day => {
+                selections[day].forEach(store => {
+                    if (!allSelectedStores.has(store.pdi)) {
+                        allSelectedStores.set(store.pdi, {
+                            ...store,
+                            days: []
+                        });
+                    }
+                    // Add day to store's days
+                    const dayAbbr = dayAbbreviations[day];
+                    if (!allSelectedStores.get(store.pdi).days.includes(dayAbbr)) {
+                        allSelectedStores.get(store.pdi).days.push(dayAbbr);
+                    }
+                });
+            });
+            
+            // Convert Map to Array and sort alphabetically by store name
+            const sortedStores = Array.from(allSelectedStores.values()).sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Add rows for each selected store
+            sortedStores.forEach(store => {
+                const row = [`"${store.pdi}"`, `"${store.name}"`];
+                let totalVisits = 0;
+                
+                days.forEach(day => {
+                    const dayStores = selections[day].map(s => s.pdi);
+                    if (dayStores.includes(store.pdi)) {
+                        row.push('Y');
+                        totalVisits++;
+                    } else {
+                        row.push('');
+                    }
+                });
+                
+                row.push(totalVisits > 0 ? totalVisits : '');
+                row.push(store.days.join(','));
+                csvContent += row.join(',') + '\n';
+            });
+            
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'store_visits.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Clear all selections
+        function clearSelections() {
+            const checkboxes = document.querySelectorAll('.store-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Remove visual indication of checked items
+            const storeNames = document.querySelectorAll('.store-name');
+            storeNames.forEach(name => {
+                name.style.color = '';
+                name.style.fontWeight = '';
+            });
+            
+            const storePdis = document.querySelectorAll('.store-pdi');
+            storePdis.forEach(pdi => {
+                pdi.style.color = '';
+            });
+            
+            const visitDays = document.querySelectorAll('.visit-days');
+            visitDays.forEach(days => {
+                days.style.color = '';
+            });
+            
+            // Reset all counts
+            updateCounts();
+        }
+        
+        // Initialize the app when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initUI();
+            
+            // Set up event listeners
+            document.getElementById('downloadBtn').addEventListener('click', downloadCSV);
+            document.getElementById('clearBtn').addEventListener('click', clearSelections);
+            
+            // Add visual feedback when checking items
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('store-checkbox')) {
+                    const checkbox = e.target;
+                    const infoDiv = checkbox.nextElementSibling;
+                    const pdiSpan = infoDiv.querySelector('.store-pdi');
+                    const nameLabel = infoDiv.querySelector('.store-name');
+                    const visitDays = infoDiv.querySelector('.visit-days');
+                    
+                    if (checkbox.checked) {
+                        nameLabel.style.color = '#4361ee';
+                        nameLabel.style.fontWeight = '500';
+                        pdiSpan.style.color = '#4361ee';
+                        visitDays.style.color = '#4361ee';
+                    } else {
+                        nameLabel.style.color = '';
+                        nameLabel.style.fontWeight = '';
+                        pdiSpan.style.color = '';
+                        visitDays.style.color = '';
+                    }
+                    
+                    // Update all counts when selection changes
+                    updateCounts();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
